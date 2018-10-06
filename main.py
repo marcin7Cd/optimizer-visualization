@@ -23,9 +23,6 @@ speed=100
 x_scale = np.linspace(bounds[0][0], bounds[0][1], image_resolution)
 y_scale = np.linspace(bounds[1][0], bounds[1][1], image_resolution)
 xy_scale = np.stack(np.meshgrid(x_scale, y_scale))
-print(xy_scale[:,0,:])
-print([np.min(x_scale),np.max(x_scale),
-                                         np.min(y_scale),np.max(y_scale)])
 fig = plt.figure(figsize=(10,5))
 ax1 = fig.add_subplot(121)
 ln = ax1.imshow(plot_function(xy_scale[0],np.flip(xy_scale[1],0)),
