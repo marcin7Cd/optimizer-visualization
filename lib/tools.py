@@ -22,7 +22,6 @@ class PaintLine(ToolToggleBase):
         self.drawer.disconnect()
 
 class Start(ToolBase):
-    '''Show lines with a given gid'''
     default_keymap = 'P'
     description = 'start animation'
     image = os.path.abspath('./lib/start.png')
@@ -62,7 +61,7 @@ class Right(ToolBase):
 
 class Left(ToolBase):
     default_keymap = 'L'
-    description = 'next frame'
+    description = 'previous frame'
     image = os.path.abspath('./lib/left.png')
     
     def __init__(self, *args, full_animation, **kwargs):
@@ -74,7 +73,7 @@ class Left(ToolBase):
             self.animation.unstep()
 
 class ZoomOption(ToolToggleBase):
-    description = 'zooms to line animation'
+    description = 'zoom to fit curve in view box'
     image = os.path.abspath('./lib/zoom_option.png')
     def __init__(self, *args, full_animation, **kwargs):
         self.animation = full_animation
@@ -87,7 +86,7 @@ class ZoomOption(ToolToggleBase):
         self.animation.zoom = False
         
 class SaveAnimation(ToolBase):
-    description = 'saves the animation'
+    description = 'save the animation'
     image = os.path.abspath('./lib/save.png')
     
     def __init__(self, *args, full_animation, **kwargs):
