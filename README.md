@@ -1,7 +1,7 @@
 # optimizer-visualization
 ## overview
 This project was created to better understand optimizers used in machine learning. It uses pytorch, matplotlib, numpy and imageio(for saving gifs). The application uses two plots. Left plot shows how value of two parameter function changes during optimiziation dependent on initial values of said parameters. Right plot shows how selected points from left plot move during optimization. This information complements the view from left plot, where movements of a point was not shown, the only thing shown in that case was the value of a function at that point.  
-
+![alt text](https://raw.githubusercontent.com/marcin7Cd/optimizer-visualization/master/overview.jpg)
 ## detailed description
 ### left plot
 Left side shows how value of a function f(x,y) changes during minimization process dependent on initial parameter values x_0, y_0. Each pixel(point) represents the initial parameters x_0,y_0 of the function. Changes to the color of a pixel represents changes of a value of the function produced by changing the values of a parameters from their initial conditions(position of a pixel). The information about movement of points is lost. We can tell if a point moves in a low value area or a hight value area, but the information which low value area it is is lost.
