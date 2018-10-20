@@ -22,6 +22,7 @@ class PaintLine(ToolToggleBase):
         self.drawer.disconnect()
 
 class Start(ToolBase):
+    '''Show lines with a given gid'''
     default_keymap = 'P'
     description = 'start animation'
     image = os.path.abspath('./lib/start.png')
@@ -57,7 +58,7 @@ class Right(ToolBase):
         
     def trigger(self, *args, **kwargs):
         if self.animation.image_animation:
-            self.animation.step()
+            self.animation.step(ignore_end=True)
 
 class Left(ToolBase):
     default_keymap = 'L'
@@ -73,7 +74,7 @@ class Left(ToolBase):
             self.animation.unstep()
 
 class ZoomOption(ToolToggleBase):
-    description = 'zoom to fit curve in view box'
+    description = 'zooms to line animation'
     image = os.path.abspath('./lib/zoom_option.png')
     def __init__(self, *args, full_animation, **kwargs):
         self.animation = full_animation
@@ -86,7 +87,7 @@ class ZoomOption(ToolToggleBase):
         self.animation.zoom = False
         
 class SaveAnimation(ToolBase):
-    description = 'save the animation'
+    description = 'saves the animation'
     image = os.path.abspath('./lib/save.png')
     
     def __init__(self, *args, full_animation, **kwargs):
@@ -95,5 +96,14 @@ class SaveAnimation(ToolBase):
 
     def trigger(self, *args, **kwargs):
         self.animation.start(save=True)
-            
 
+class FixedPoint(ToolBase):
+    description = 'selects fixed point'
+    image = os.path.abspath('./lib/fixed_point.png')
+    
+    def __init__(self, *args, full_animation, **kwargs):
+        self.animation = full_animation
+        super().__init__(*args, **kwargs)
+
+    def trigger(self, *args, **kwargs):
+        self.animation.fixed_point.activate()

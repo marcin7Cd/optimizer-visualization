@@ -75,6 +75,55 @@ class DrawableLine:
         self.axes.figure.canvas.mpl_disconnect(self.cidrelease)
         self.axes.figure.canvas.mpl_disconnect(self.cidmotion)
 
+class SelectablePoint:
+    def __init__(self, ax):
+        self.axes = ax
+        self.current_point = None
+        self.point = None
+        self.awake = False
+        self.point_was_drawn = False
+        self.connect()
+        
+    def connect(self):
+        'connect to all the events we need'
+        self.cidpress = self.axes.figure.canvas.mpl_connect(
+            'button_press_event', self.on_press)
+
+    def on_press(self, event):
+        'on button press we will see if the mouse is over us and store some data'
+        if self.awake:
+            self.awake = False
+            if event.inaxes != self.axes:
+                self.current_point = None
+                if self.point_was_drawn:
+                    self.point.set_data([None],
+                                        [None])
+                    self.axes.figure.canvas.draw()
+            
+                return
+            
+            self.current_point = event.xdata, event.ydata
+
+            if not self.point_was_drawn:
+                self.point = self.axes.plot([self.current_point[0]],
+                                            [self.current_point[1]],
+                                            'ro',c=(0,0,0,0.3),lw=2)[0]
+                self.point_was_drawn = True
+            else:
+                self.point.set_data([self.current_point[0]],
+                                    [self.current_point[1]])
+            print('Printed', self.current_point)
+            self.axes.figure.canvas.draw()
+            
+
+    def disconnect(self):
+        'disconnect all the stored connection ids'
+        self.axes.figure.canvas.mpl_disconnect(self.cidpress)
+
+    def activate(self):
+        self.awake = True
+
+
 class AnimationSave():
     def __init__(self):
         self.saving = False
@@ -123,6 +172,7 @@ class FullAnimation():
         self.image_animation = None
         self.line_animation = None
         self.line_draw = line_draw
+        self.fixed_point = SelectablePoint(self.right_ax)
         self.saver = AnimationSave()
 
         self.image_bounds = image_bounds
@@ -136,6 +186,7 @@ class FullAnimation():
         
         
     def draw_right(self, image, first_time=False):
+        print(']', end='')
         if not self.point:
             self.point = self.right_ax.scatter(image[:, 0], image[:, 1], s=0.5,
                                                c = np.linspace(0, 1, num=len(image[:,0])),
@@ -143,33 +194,35 @@ class FullAnimation():
         else:
             self.point.set_offsets(image)
 
-        if self.zoom:
-            wh = [0, 0]
-            for i in range(2):
-                wh[i] = image[:,i].max() - image[:,i].min() 
-            max_wh = np.max(wh)
+        if self.zoom :
+            if not self.fixed_point.current_point:
+                wh = [0, 0]
+                for i in range(2):
+                    wh[i] = image[:,i].max() - image[:,i].min() 
+                max_wh = np.max(wh)
 
-            self.right_ax.set_xlim(image[:,0].min()+(wh[0]-max_wh)/2,
-                                   image[:,0].max()-(wh[0]-max_wh)/2)
-            self.right_ax.set_ylim(image[:,1].min()+(wh[1]-max_wh)/2,
-                                   image[:,1].max()-(wh[1]-max_wh)/2)
+                self.right_ax.set_xlim(image[:,0].min()+(wh[0]-max_wh)/2,
+                                       image[:,0].max()-(wh[0]-max_wh)/2)
+                self.right_ax.set_ylim(image[:,1].min()+(wh[1]-max_wh)/2,
+                                       image[:,1].max()-(wh[1]-max_wh)/2)
+            else:
+                center = self.fixed_point.current_point
+                k = 1.1*np.max([-(image[:,1].min()-center[1]),
+                            (image[:,1].max()-center[1]),
+                            -(image[:,0].min()-center[0]),
+                            (image[:,0].max()-center[0]),
+                            ])
+                self.running_average = 0.5*self.running_average + 0.5*k 
 
-        elif False:
-            k = 1.1*np.max([-(image[:,1].min()-self.center[1]),
-                        (image[:,1].max()-self.center[1]),
-                        -(image[:,0].min()-self.center[0]),
-                        (image[:,0].max()-self.center[0]),
-                        ])
-            self.running_average = 0.0*self.running_average + 1.0*k 
-
-            self.right_ax.set_ylim( self.center[1]-self.running_average,
-                         self.center[1]+self.running_average)
-            self.right_ax.set_xlim( self.center[0]-self.running_average,
-                            self.center[0]+self.running_average)
+                self.right_ax.set_ylim( center[1]-self.running_average,
+                             center[1]+self.running_average)
+                self.right_ax.set_xlim( center[0]-self.running_average,
+                                center[0]+self.running_average)
         
         self.right_ax.figure.canvas.draw()
 
     def draw_left(self, image):
+        print('[', end='')
         self.sheet.set_data(image)
         self.left_ax.figure.canvas.draw()
 
@@ -212,9 +265,8 @@ class FullAnimation():
         ##seting up timer to draw frames
         if self.timer:
             self.stop()
-            if save:
-                self.timer.remove_callback(self.callback_id)
-                self.timer.add_callback(self.step, save)
+            self.timer.remove_callback(self.step)
+            self.timer.add_callback(self.step, save)
             self.timer.start(interval=self.speed)
         else:
             self.timer = self.right_ax.figure.canvas.new_timer(interval=self.speed)
@@ -222,14 +274,13 @@ class FullAnimation():
             self.timer.start()
 
     def stop(self, save=False):
-        print(save)
         if self.timer:
             self.timer.stop()
             self.saver.save()
             self.saver.clear()
   
     
-    def step(self, save=False, first_time=False):
+    def step(self, save=False, first_time=False, ignore_end=False):
         """
         changes displayed data to data from next frame.
         both sides are animated until they reach the last frame, then timer is stopped
@@ -241,21 +292,32 @@ class FullAnimation():
         ##right side animation
         if self.line_draw.current_line:
             if self.line_animation.is_last():
-                self.stop(save)
-                return
+                if ignore_end:
+                    self.line_animation.number_of_frames+=1
+                    self.duration+=1
+                    print('1')
+                else:
+                    self.stop(save)
+                    return
             right_image = self.line_animation.get_next_frame().transpose(1, 0)
             self.draw_right(right_image,first_time)
             
         ##left_side_animatiob
         if not self.line_animation\
-        or self.line_animation.current_frame-1 == \
+        or self.line_animation.current_frame-1 >= \
         self.image_animation.current_frame:#-1 because we've already taken one frame
             if self.image_animation.is_last():
-                self.stop(save)
-                return
+                if ignore_end:
+                    self.image_animation.number_of_frames+=1
+                    self.duration+=1
+                    print('2')
+                else:
+                    self.stop(save)
+                    return
             left_image = self.image_animation.get_next_frame()
             self.draw_left(left_image)
         if save:
+            print('S')
             width, height = self.left_ax.figure.get_size_inches()\
                             *self.left_ax.figure.get_dpi()
             self.saver.add_frame(np.fromstring(self.right_ax.figure.canvas.tostring_rgb(),
