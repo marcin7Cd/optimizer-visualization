@@ -14,6 +14,6 @@ For better analysis you can move to next or previous frame. Moving to the next f
 ### saving
 The only supported format is gif. When save button is clicked the animation is started and all subsequent frames will be recorded. Stopping animation causes the recording to stop and saves the results.
 ### view
-There is an option to follow the right curve. IF selected it will constantly change view so as to fill the whole curve. Additionaly If you select the fixed point the view will be centered on that point.  
+There is an option to follow the right curve. IF selected it will constantly change view so as to fill the whole curve. Additionaly If you select the focus point the view will be centered on that point.  
 ### adjusting
 In the main.py you can change manualy parameters: duration - number of frames to show; speed - minimal interval between frames(frame generation may take longer); image_resolution - number of points per line of an image; line_resolution - number of points on the line; optimX - optimizer used; plot_function - two argument function (currently has to work on numpy and torch arrays); bounds - limits of parameters initial values
