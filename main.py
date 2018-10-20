@@ -14,11 +14,11 @@ import lib.main_logic as logic
 ##ADJUSTABLE VARIABLES
 
 
-#optimX = lambda x: optim.Adam(x ,lr=0.5, betas=(0.9,0.99))
+optimX = lambda x: optim.Adam(x ,lr=0.1, betas=(0.9,0.99))
 #optimX = lambda x: optim.Adadelta(x ,lr=10.0, rho=0.9)
 #optimX = lambda x: optim.Adagrad(x ,lr=0.4)
 #optimX = lambda x: optim.Adamax(x ,lr=0.1,betas=(0.9, 0.99))
-optimX = lambda x: optim.RMSprop(x ,lr=0.02, momentum=0.5)
+#optimX = lambda x: optim.RMSprop(x ,lr=0.02, momentum=0.5)
 #optimX = lambda x: optim.SGD(x ,lr=0.1, momentum=0.9)
 plot_function = lambda x,y : ((x)**2*4+y**2*4+(x*2-3)**3/10\
                               +(y-1)**3/10*8+x*y*4+(x**4+y**4)/10+97)/100
